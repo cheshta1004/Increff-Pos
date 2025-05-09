@@ -10,3 +10,17 @@
 *.swp
 *.tmp
 .env
+
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build directories
+/dist
+/build
+
+# IDE specific files
+*.sublime-workspace
+*.sublime-project
