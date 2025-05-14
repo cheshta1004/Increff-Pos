@@ -1,12 +1,11 @@
 package com.increff.invoice.model;
 
-import java.time.ZonedDateTime;
 import java.util.List;
 import com.increff.invoice.model.enums.OrderStatus;
 
 public class OrderData {
     private Integer id;
-    private ZonedDateTime time;
+    private String time;
     private OrderStatus status;
     private List<OrderItemData> items;
     private String customerName;
@@ -23,11 +22,11 @@ public class OrderData {
         this.id = id;
     }
 
-    public ZonedDateTime getTime() {
+    public String getTime() {
         return time;
     }
 
-    public void setTime(ZonedDateTime time) {
+    public void setTime(String time) {
         this.time = time;
     }
 

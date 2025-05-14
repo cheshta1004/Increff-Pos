@@ -153,8 +153,8 @@ public class PdfService {
                 .sum() : 0.0;
 
         Paragraph total = new Paragraph(
-            String.format("Total Amount: $%.2f", totalAmount),
-            new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)
+                String.format("Total Amount: ₹%.2f", totalAmount),
+                new Font(Font.FontFamily.HELVETICA, 14, Font.BOLD)
         );
         total.setAlignment(Element.ALIGN_RIGHT);
         document.add(total);
