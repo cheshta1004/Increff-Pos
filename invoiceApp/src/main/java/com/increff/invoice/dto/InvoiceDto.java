@@ -5,27 +5,40 @@ import com.increff.invoice.model.InvoiceData;
 import com.increff.invoice.pojo.InvoicePojo;
 import com.increff.invoice.service.PdfService;
 import com.increff.invoice.exception.ApiException;
+import com.increff.invoice.model.DailyReportRequest;
+import com.increff.invoice.model.form.SalesReportRequestForm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
-import com.itextpdf.text.DocumentException;
 import java.util.Base64;
 import java.time.ZonedDateTime;
+import org.springframework.web.client.RestTemplate;
+import com.increff.invoice.model.DailyReportData;
+import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import com.increff.invoice.model.SalesReportRequest;
+import com.increff.invoice.model.SalesReportData;
 
 @Service
 public class InvoiceDto {
 
     private static final Logger logger = LoggerFactory.getLogger(InvoiceDto.class);
+    private static final String DAILY_REPORT_SERVICE_URL = "http://localhost:9001/pos/api/reports/daily";
+    private static final DateTimeFormatter ISO_DATE_TIME = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+    private static final DateTimeFormatter SIMPLE_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final InvoiceApi invoiceApi;
     private final PdfService pdfService;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public InvoiceDto(InvoiceApi invoiceApi, PdfService pdfService) {
+    public InvoiceDto(InvoiceApi invoiceApi, PdfService pdfService, RestTemplate restTemplate) {
         this.invoiceApi = invoiceApi;
         this.pdfService = pdfService;
+        this.restTemplate = restTemplate;
         logger.info("InvoiceDto initialized with dependencies");
     }
 
@@ -33,12 +46,12 @@ public class InvoiceDto {
         logger.info("Generating invoice for order ID: {}", orderId);
         
         // Generate PDF
-        byte[] pdfBytes = pdfService.generatePdf(orderId);
+        InvoicePojo invoicePojo = new InvoicePojo();
+        invoicePojo.setOrderId(orderId);
+        byte[] pdfBytes = pdfService.generateInvoicePdf(invoicePojo);
         String base64Pdf = Base64.getEncoder().encodeToString(pdfBytes);
 
         // Create new invoice
-        InvoicePojo invoicePojo = new InvoicePojo();
-        invoicePojo.setOrderId(orderId);
         invoicePojo.setCreatedAt(ZonedDateTime.now());
         invoicePojo.setFilePath("invoices/invoice_" + orderId + ".pdf");
         invoicePojo.setBase64pdf(base64Pdf);
@@ -54,8 +67,71 @@ public class InvoiceDto {
         return new InvoiceData(pojo);
     }
 
-    public byte[] downloadPdf(int orderId) throws ApiException, IOException, DocumentException {
+    public byte[] downloadPdf(int orderId) throws ApiException, IOException {
         logger.info("Downloading PDF for order ID: {}", orderId);
-        return pdfService.generatePdf(orderId);
+        InvoicePojo invoicePojo = new InvoicePojo();
+        invoicePojo.setOrderId(orderId);
+        return pdfService.generateInvoicePdf(invoicePojo);
+    }
+
+    public byte[] generateDailyReportPdf(List<DailyReportData> reportData, DailyReportRequest.DailyReportFilter filter) throws Exception {
+        logger.info("Generating daily report PDF from {} to {}", filter.getStartDate(), filter.getEndDate());
+        
+        if (reportData == null || reportData.isEmpty()) {
+            throw new ApiException("No data found for the specified date range");
+        }
+
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        
+        try {
+            // Try parsing as ISO date-time first
+            startDate = ZonedDateTime.parse(filter.getStartDate(), ISO_DATE_TIME).toLocalDateTime();
+            endDate = ZonedDateTime.parse(filter.getEndDate(), ISO_DATE_TIME).toLocalDateTime();
+        } catch (Exception e) {
+            // If that fails, try parsing as simple date
+            try {
+                startDate = LocalDateTime.parse(filter.getStartDate() + "T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                endDate = LocalDateTime.parse(filter.getEndDate() + "T23:59:59", DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception ex) {
+                throw new ApiException("Invalid date format. Please use either ISO date-time (e.g., 2025-05-15T00:00:00Z) or simple date (e.g., 2025-05-15)");
+            }
+        }
+
+        // Generate PDF using PdfService with the provided data
+        return pdfService.generateDailyReportPdf(startDate, endDate, reportData.toArray(new DailyReportData[0]));
+    }
+
+    public byte[] generateSalesReportPdf(SalesReportRequest request) throws Exception {
+        logger.info("Generating sales report from {} to {}", request.getFilter().getStartDate(), request.getFilter().getEndDate());
+        
+        if (request.getData() == null || request.getData().isEmpty()) {
+            throw new ApiException("No data provided for sales report");
+        }
+
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        
+        try {
+            // Try parsing as ISO date-time first
+            startDate = ZonedDateTime.parse(request.getFilter().getStartDate(), ISO_DATE_TIME).toLocalDateTime();
+            endDate = ZonedDateTime.parse(request.getFilter().getEndDate(), ISO_DATE_TIME).toLocalDateTime();
+        } catch (Exception e) {
+            // If that fails, try parsing as simple date
+            try {
+                startDate = LocalDateTime.parse(request.getFilter().getStartDate() + "T00:00:00", DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                endDate = LocalDateTime.parse(request.getFilter().getEndDate() + "T23:59:59", DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+            } catch (Exception ex) {
+                throw new ApiException("Invalid date format. Please use either ISO date-time (e.g., 2025-05-15T00:00:00Z) or simple date (e.g., 2025-05-15)");
+            }
+        }
+
+        // Generate PDF using PdfService with the provided data
+        return pdfService.generateSalesReportPdf(
+            startDate, 
+            endDate, 
+            request.getFilter().getClientName(), 
+            request.getData().toArray(new SalesReportData[0])
+        );
     }
 }

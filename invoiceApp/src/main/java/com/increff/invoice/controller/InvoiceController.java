@@ -10,10 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import com.increff.invoice.model.DailyReportRequest;
+import com.increff.invoice.model.SalesReportRequest;
+import com.increff.invoice.model.form.SalesReportRequestForm;
 @RestController
 @RequestMapping("/api/invoice")
-@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", exposedHeaders = "Content-Disposition")
+@CrossOrigin(originPatterns = {"http://localhost:4200"}, 
+    allowedHeaders = {"Content-Type", "Authorization", "X-User-Role", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"}, 
+    exposedHeaders = {"Content-Disposition"},
+    methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
+    allowCredentials = "true")
 public class InvoiceController {
     private static final Logger logger = LoggerFactory.getLogger(InvoiceController.class);
 
@@ -28,6 +34,18 @@ public class InvoiceController {
     @RequestMapping(value = "/download/{orderId}", method = RequestMethod.OPTIONS)
     public ResponseEntity<?> handleDownloadOptions() {
         return ResponseEntity.ok().build();
+    }
+
+    @RequestMapping(value = "/daily-report", method = RequestMethod.OPTIONS)
+    public ResponseEntity<?> handleDailyReportOptions() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Access-Control-Allow-Origin", "http://localhost:4200");
+        headers.add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-User-Role, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
+        headers.add("Access-Control-Allow-Credentials", "true");
+        headers.add("Access-Control-Max-Age", "3600");
+        headers.add("Access-Control-Expose-Headers", "Content-Disposition, Access-Control-Allow-Origin, Access-Control-Allow-Credentials");
+        return ResponseEntity.ok().headers(headers).build();
     }
 
     @PostMapping("/generate/{orderId}")
@@ -56,5 +74,54 @@ public class InvoiceController {
         logger.info("Getting invoice data for order ID: {}", orderId);
         InvoiceData invoiceData = invoiceDto.getInvoiceByOrderId(orderId);
         return ResponseEntity.ok(invoiceData);
+    }
+
+    @PostMapping("/daily-report")
+    public ResponseEntity<byte[]> generateDailyReport(@RequestBody DailyReportRequest request) throws Exception {
+        logger.info("Generating daily report from {} to {}", request.getFilter().getStartDate(), request.getFilter().getEndDate());
+        logger.info("Received {} data points", request.getData().size());
+        
+        byte[] pdfBytes = invoiceDto.generateDailyReportPdf(request.getData(), request.getFilter());
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", 
+            String.format("daily-report-%s-to-%s.pdf", 
+                request.getFilter().getStartDate(), 
+                request.getFilter().getEndDate()));
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
+    @RequestMapping(value = "/sales-report", method = RequestMethod.OPTIONS)
+    public ResponseEntity<?> handleSalesReportOptions() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Access-Control-Allow-Origin", "http://localhost:4200");
+        headers.add("Access-Control-Allow-Methods", "POST, OPTIONS");
+        headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization, X-User-Role, X-Requested-With, Accept, Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
+        headers.add("Access-Control-Allow-Credentials", "true");
+        headers.add("Access-Control-Max-Age", "3600");
+        headers.add("Access-Control-Expose-Headers", "Content-Disposition, Access-Control-Allow-Origin, Access-Control-Allow-Credentials");
+        return ResponseEntity.ok().headers(headers).build();
+    }
+
+    @PostMapping("/sales-report")
+    public ResponseEntity<byte[]> generateSalesReport(@RequestBody SalesReportRequest request) throws Exception {
+        logger.info("Generating sales report from {} to {}", request.getFilter().getStartDate(), request.getFilter().getEndDate());
+        
+        byte[] pdfBytes = invoiceDto.generateSalesReportPdf(request);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", 
+            String.format("sales-report-%s-to-%s.pdf", 
+                request.getFilter().getStartDate(), 
+                request.getFilter().getEndDate()));
+        
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
     }
 }

@@ -1,9 +1,6 @@
 com/increff/invoice/exception/ApiException.class
-com/increff/invoice/dto/InvoiceDto.class
 com/increff/invoice/pojo/InvoiceItemPojo.class
-com/increff/invoice/controller/InvoiceController.class
 com/increff/invoice/config/SecurityConfig.class
-com/increff/invoice/service/PdfService.class
 com/increff/invoice/api/InvoiceApi.class
 com/increff/invoice/config/ControllerConfig.class
 com/increff/invoice/InvoiceApplication.class

@@ -41,9 +41,24 @@ public class WebInitializer extends AbstractAnnotationConfigDispatcherServletIni
 	protected Filter[] getServletFilters() {
 		CorsConfiguration corsConfiguration = new CorsConfiguration();
 		corsConfiguration.setAllowedOrigins(Arrays.asList("http://localhost:4200"));
-		corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-		corsConfiguration.setAllowedHeaders(Arrays.asList("Content-Type", "Authorization"));
+		corsConfiguration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+		corsConfiguration.setAllowedHeaders(Arrays.asList(
+			"Authorization",
+			"Content-Type",
+			"Accept",
+			"Origin",
+			"X-Requested-With",
+			"Access-Control-Request-Method",
+			"Access-Control-Request-Headers",
+			"X-User-Role"
+		));
+		corsConfiguration.setExposedHeaders(Arrays.asList(
+			"Access-Control-Allow-Origin",
+			"Access-Control-Allow-Credentials",
+			"Content-Disposition"
+		));
 		corsConfiguration.setAllowCredentials(true);
+		corsConfiguration.setMaxAge(3600L);
 
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", corsConfiguration);

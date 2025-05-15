@@ -27,7 +27,6 @@ public class InvoiceApi {
                     throw new ApiException("Invoice already exists for order ID " + invoicePojo.getOrderId());
                 }
             } catch (NoResultException e) {
-                // This is expected when no invoice exists
                 logger.debug("No existing invoice found for order ID: {}", invoicePojo.getOrderId());
             }
             invoiceDao.insert(invoicePojo);
