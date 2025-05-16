@@ -1,4 +1,4 @@
-package com.increff.invoice.model;
+package com.increff.invoice.model.form;
 
 import com.increff.invoice.pojo.InvoicePojo;
 

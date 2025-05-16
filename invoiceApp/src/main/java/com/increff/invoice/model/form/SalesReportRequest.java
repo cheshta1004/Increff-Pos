@@ -1,4 +1,4 @@
-package com.increff.invoice.model;
+package com.increff.invoice.model.form;
 
 import lombok.Getter;
 import lombok.Setter;

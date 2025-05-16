@@ -6,12 +6,16 @@ import lombok.Setter;
 import javax.persistence.*;
 import java.util.List;
 import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.Objects;
+
 @Entity
 @Table(name = "invoice")
 @Getter
 @Setter
 public class InvoicePojo {
+    private static final ZoneId UTC_ZONE = ZoneId.of("UTC");
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -33,7 +37,7 @@ public class InvoicePojo {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = ZonedDateTime.now();
+        createdAt = ZonedDateTime.now(UTC_ZONE);
         if (Objects.isNull(filePath)) {
             filePath = "invoices/invoice_" + orderId + ".pdf";
         }

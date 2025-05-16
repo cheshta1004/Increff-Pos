@@ -1,6 +1,7 @@
-package com.increff.invoice.model;
+package com.increff.invoice.model.form;
 
 import java.util.List;
+
 import com.increff.invoice.model.enums.OrderStatus;
 
 public class OrderData {

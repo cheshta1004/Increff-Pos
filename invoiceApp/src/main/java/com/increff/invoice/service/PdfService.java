@@ -1,8 +1,7 @@
 package com.increff.invoice.service;
 
 import com.increff.invoice.pojo.InvoicePojo;
-import com.increff.invoice.model.OrderData;
-import com.increff.invoice.model.DailyReportData;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
@@ -21,7 +20,9 @@ import com.itextpdf.layout.element.Cell;
 import com.itextpdf.layout.properties.UnitValue;
 import org.springframework.http.ResponseEntity;
 import com.increff.invoice.exception.ApiException;
-import com.increff.invoice.model.SalesReportData;
+import com.increff.invoice.model.form.DailyReportData;
+import com.increff.invoice.model.form.OrderData;
+import com.increff.invoice.model.form.SalesReportData;
 
 @Service
 public class PdfService {
