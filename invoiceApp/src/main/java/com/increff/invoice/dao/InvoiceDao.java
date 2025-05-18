@@ -2,11 +2,9 @@ package com.increff.invoice.dao;
 
 import com.increff.invoice.pojo.InvoicePojo;
 import org.springframework.stereotype.Repository;
-
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.*;
-import java.util.List;
 
 @Repository
 public class InvoiceDao {
